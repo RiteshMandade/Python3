@@ -1,0 +1,188 @@
+from django.shortcuts import render,redirect
+from .forms import FieldsForm,AppointForm,AmbulanceForm
+from django.contrib.auth import authenticate,login,logout
+from django.views.generic.edit import UpdateView, DeleteView
+from django.contrib import messages
+from django.core.mail import EmailMessage,send_mail
+from .models import Appoint,Ambulance,Product,Category
+from django.contrib.auth.decorators import login_required
+from django.views import View
+
+
+# Create your views here.
+def homeview(request):
+    template_name = 'healthify/home.html'
+    context = {}
+    return render(request,template_name,context)
+
+def RegisterView(request):
+    form = FieldsForm()
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        form = FieldsForm(request.POST)
+        if form.is_valid():
+            form.save()
+            send_mail(
+                'Register Successfully',
+
+                'Just  wanted to thank you for register in Healthify.'
+                'Hope you can Enhance our services.'
+
+                'Thank You!'
+
+                'Healthify',
+                'rpmandade22@gmail.com',
+                [email,],
+                fail_silently = False,)
+
+            '''template = render_to_string('healthify/Confirmation.html', {'name': request.user.profile.first_name})
+            email = EmailMessage(
+                'Successfuly Login!!',
+                template,
+                settings.EMAIL_HOST_USER,
+                [request.user.profile.email],
+                )
+            email.fail_silently= False
+            email.send()'''
+            return redirect('login')
+    template_name = 'healthify/register.html'
+    context = {'forms': form}
+    return render(request,template_name,context)
+
+def LoginView(request):
+    if request.method == 'POST':
+        u = request.POST.get('uname')
+        p = request.POST.get('pw')
+        user = authenticate(username=u,password=p)
+        if user is not None:
+            print('User is valid')
+            login(request,user)
+            return redirect('home')
+        else:
+            print('Invalid Login ID or Password plz enter valid login details')
+            messages.error(request,'Invalid Credential Please Try again')
+    template_name = 'healthify/login.html'
+    context = {}
+    return render(request,template_name,context)
+
+def logoutView(request):
+    logout(request)
+    return redirect('home')
+
+def adminview(request):
+    return render(request, 'healthify/admin.html', { } )
+
+
+@login_required(login_url='login')
+def registrationform(request):
+    if request.method == 'POST':
+        form = AppointForm(request.POST)
+        if form.is_valid():
+            a = form.cleaned_data['fname']
+            b = form.cleaned_data['lname']
+            c = form.cleaned_data['age']
+            d = form.cleaned_data['gender']
+            e = form.cleaned_data['city']
+            f = form.cleaned_data['state']
+            g = form.cleaned_data['zip']
+            h = form.cleaned_data['dx_type']
+            i = form.cleaned_data['dx_name']
+            j = form.cleaned_data['lst_time']
+            k = form.cleaned_data['dt_app']
+            l = form.cleaned_data['ap_time']
+            m = form.cleaned_data['mo_no']
+            n = form.cleaned_data['p_email']
+            ap = Appoint(fname=a, lname=b, gender=d, age=c, city=e, state=f, zip=g, dx_type=h, dx_name=i, lst_time=j,
+                         dt_app=k, ap_time=l, mo_no=m, p_email=n)
+            ap.save()
+            return render(request, 'healthify/appoint Success.html', {})
+    template_name = 'healthify/appoinment.html'
+    form = AppointForm()
+    context = {'forms': form}
+    return render(request, template_name, context)
+
+
+def showAppoint(request):
+    template_name= 'healthify/show.html'
+    appoint = Appoint.objects.all()
+    context = {'appoints': appoint}
+    return render(request,template_name,context)
+
+
+
+def Updateappoint(request, id):
+    app = Appoint.objects.get(id=id)
+    form = AppointForm(instance=app)
+    if request.method == 'POST':
+        form = AppointForm(request.POST, instance=app)
+        if form.is_valid():
+            form.save()
+            return render('show')
+    template_name = 'healthify/appoinment.html'
+    context = {'forms': form}
+    return render(request, template_name, context)
+
+
+def deleappoit(request, id):
+    app =Appoint.objects.get(id=id)
+    app.delete()
+    return redirect('show')
+
+
+
+def Ambulanceview(request):
+    if request.method == 'POST':
+        form = AmbulanceForm(request.POST)
+        if form.is_valid():
+            a= form.cleaned_data['name']
+            b = form.cleaned_data['add']
+            c = form.cleaned_data['desti']
+            d=form.cleaned_data['city']
+            e=form.cleaned_data['state']
+            f = form.cleaned_data['phone']
+            g =form.cleaned_data['uid']
+            h = form.cleaned_data['dtime']
+            i = form.cleaned_data['serv']
+            bok = Ambulance(name=a,add=b, desti=c, city=d, state=e, phone=f, uid=g, dtime=h, serv=i)
+            bok.save()
+            return render(request, 'healthify/appoint Success.html', {})
+    template_name= 'healthify/ambulance.html'
+    form=AmbulanceForm()
+    context = {'book': form}
+    return render(request, template_name, context)
+
+
+def ambshow(request):
+    template_name= 'healthify/ambshow.html'
+    amb = Ambulance.objects.all()
+    context = {'ambi': amb }
+    return render(request,template_name,context)
+
+
+
+def Productview(request):
+    template_name= 'healthify/store.html'
+    products = Product.objects.all()
+    context = {'products': products}
+    return render(request, template_name, context)
+
+def CategoryView(request):
+
+    category = Category.objects.all()
+    categoryID=request.GET.get('category')
+    print(categoryID)
+    if categoryID:
+        products=Product.objects.filter(category=categoryID)
+    else:
+        products = Product.objects.all()
+
+    product=Product.objects.all()
+    categories=Category.objects.all()
+
+    myfilter=ProductFilter(request.GET, queryset=Product.objects.all())
+    print(myfilter)
+    prod=myfilter.qs
+    print(prod)
+    template_name = 'healthify/store.html'
+    context = {'products': products, 'categories': categories, 'myfilter':myfilter}
+    return render(request, template_name, context)
