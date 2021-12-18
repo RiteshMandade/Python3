@@ -1,0 +1,20 @@
+Environment for React-
+1) Node.js and NPM(Node Package Manager)   visit-https://nodejs.org/en/download/
+2)on CMD=node -v  ii)npm --version
+2)VS code(visual studio code)
+
+Install react from terminal-
+
+1st command= npm install -g create-react-app
+2nd command= create-react-app --version
+3rd command= npx create-react-app project-name (small letter)
+4 rth command to run project- npm start
+
+react-js- client side scripting library through which we can develop more responsive and attractive applications
+1)reactjs work on virtual DOM(owner/developer-facebook)
+2)due to virtual DOM react js applications having besst perfomence
+3)it uses JSX(javaScript extension)(JSX is light weighted)
+4)Reactjs provide more simplicity 
+5)reactjs can develope scelable application.
+6)websites-facebook,instagram,whatsup
+7)reactjs is single page application
